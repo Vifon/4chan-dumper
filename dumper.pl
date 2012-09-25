@@ -10,19 +10,27 @@ use Encode qw(encode);
 
 use WWW::Curl::Easy;
 
+sub downloader {
+    my $curl = WWW::Curl::Easy->new;
+    return sub {
+        my ($url, $output) = @_;
+
+        $curl->setopt(CURLOPT_URL       , $url);
+        $curl->setopt(CURLOPT_WRITEDATA , $output);
+        return $curl->perform;
+    }
+}
+
+$| = 1;
 
 for (@ARGV) {
     my ($board, $id) = m,4chan.org/(.*?)/res/(\d*),;
 
+    my $dl = downloader;
+
     my $url = "http://api.4chan.org/$board/res/$id.json";
-
-    my $curl = WWW::Curl::Easy->new;
-
-    $curl->setopt(CURLOPT_URL, $url);
     my $json;
-    $curl->setopt(CURLOPT_WRITEDATA, \$json);
-
-    die if $curl->perform != 0;
+    die if $dl->($url, \$json) != 0;
 
 
     my $thread = decode_json(encode('utf-8', $json));
@@ -39,9 +47,7 @@ for (@ARGV) {
         print "[1;33mEXISTS[0m\n" and next if -e $filename;
 
         my $image;
-        $curl->setopt(CURLOPT_URL, $url);
-        $curl->setopt(CURLOPT_WRITEDATA, \$image);
-        if ($curl->perform == 0) {
+        if ($dl->($url, \$image) == 0) {
             print "[1;32mDONE[0m"
         } else {
             print "[1;31mERROR[0m"
