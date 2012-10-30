@@ -5,7 +5,6 @@ use strict;
 use 5.010;
 
 use JSON::XS;
-use File::Slurp qw(slurp);
 use Encode qw(encode);
 
 use WWW::Curl::Easy;
@@ -30,7 +29,7 @@ for (@ARGV) {
 
     my $url = "http://api.4chan.org/$board/res/$id.json";
     my $json;
-    die if $dl->($url, \$json) != 0;
+    next if $dl->($url, \$json) != 0;
 
 
     my $thread = decode_json(encode('utf-8', $json));
@@ -53,7 +52,7 @@ for (@ARGV) {
             print "[1;31mERROR[0m"
         }
 
-        open(my $file, '>', $filename) or die;
+        open(my $file, '>', $filename) or next;
         print $file $image;
         close $file;
         print "\n";
