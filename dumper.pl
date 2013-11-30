@@ -10,12 +10,21 @@ use Encode qw(encode);
 use WWW::Curl::Easy;
 
 sub downloader {
-    my $curl = WWW::Curl::Easy->new;
+    my $options = shift;
+    my $curl = WWW::Curl::Easy->new(@_);
+
+    if ($options) {
+        for my $key (keys %$options) {
+            $curl->setopt($key, $options->{$key})
+        }
+    }
+
     return sub {
         my ($url, $output) = @_;
 
         $curl->setopt(CURLOPT_URL       , $url);
         $curl->setopt(CURLOPT_WRITEDATA , $output);
+
         return $curl->perform;
     }
 }
@@ -25,7 +34,7 @@ $| = 1;
 for (@ARGV) {
     my ($board, $id) = m,4chan.org/(.*?)/res/(\d*),;
 
-    my $dl = downloader;
+    my $dl = downloader({ CURLOPT_USERAGENT , 'Mozilla/5.0 (X11; Linux x86_64) Perl/5.18.1 curl/7.33.0' });
 
     my $url = "http://api.4chan.org/$board/res/$id.json";
     my $json;
