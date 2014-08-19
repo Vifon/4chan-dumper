@@ -32,11 +32,11 @@ sub downloader {
 $| = 1;
 
 for (@ARGV) {
-    my ($board, $id) = m,4chan.org/(.*?)/res/(\d*),;
+    my ($board, $id) = m,4chan.org/(.*?)/thread/(\d*)(:?/.*)?,;
 
     my $dl = downloader({ CURLOPT_USERAGENT , 'Mozilla/5.0 (X11; Linux x86_64) Perl/5.18.1 curl/7.33.0' });
 
-    my $url = "http://api.4chan.org/$board/res/$id.json";
+    my $url = "http://api.4chan.org/$board/thread/$id.json";
     my $json;
     next if $dl->($url, \$json) != 0;
 
