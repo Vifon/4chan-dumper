@@ -47,6 +47,12 @@ sub downloader {
 
 $| = 1;
 
+my $list_only = 0;
+if ($ARGV[0] eq "-l") {
+    $list_only = 1;
+    shift @ARGV;
+}
+
 for (@ARGV) {
     my ($board, $id) = m,4chan.org/(.*?)/thread/(\d*)(:?/.*)?,;
 
@@ -66,20 +72,24 @@ for (@ARGV) {
 
 
         my $url = "http://images.4chan.org/$board/src/$filename";
-        print "$url ... ";
-
-        print "\e[1;33mEXISTS\e[0m\n" and next if -e $filename;
-
-        my $image;
-        if ($dl->($url, \$image) == 0) {
-            print "\e[1;32mDONE\e[0m"
+        if ($list_only) {
+            say $url;
         } else {
-            print "\e[1;31mERROR\e[0m"
-        }
+            print "$url ... ";
 
-        open(my $file, '>', $filename) or next;
-        print $file $image;
-        close $file;
-        print "\n";
+            print "\e[1;33mEXISTS\e[0m\n" and next if -e $filename;
+
+            my $image;
+            if ($dl->($url, \$image) == 0) {
+                print "\e[1;32mDONE\e[0m"
+            } else {
+                print "\e[1;31mERROR\e[0m"
+            }
+
+            open(my $file, '>', $filename) or next;
+            print $file $image;
+            close $file;
+            print "\n";
+        }
     }
 }
